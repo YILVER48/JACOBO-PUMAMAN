@@ -1,0 +1,1125 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10172e">
+  <title>JACOBO PUMAMAN — La gran carrera</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #fff9e8;
+      --muted: #c9cbe1;
+      --gold: #ffd85b;
+      --pink: #ff6d9d;
+      --panel: rgba(15, 20, 48, .9);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      overflow-x: hidden;
+      padding: 18px;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 50% 0%, #293a70 0, transparent 56%),
+        linear-gradient(150deg, #12182f, #090d1b 72%);
+      font-family: "Trebuchet MS", "Arial Rounded MT Bold", system-ui, sans-serif;
+    }
+    button { font: inherit; }
+    .cabinet { width: min(100%, 1120px); }
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin: 0 4px 11px;
+    }
+    .brand {
+      font-size: clamp(17px, 3vw, 25px);
+      font-weight: 1000;
+      letter-spacing: .07em;
+      color: #fff2bd;
+      text-shadow: 0 3px 0 #a64b34, 0 0 20px #ffcf52aa;
+    }
+    .top-actions { display: flex; gap: 8px; }
+    .small-button, .touch-button {
+      color: var(--ink);
+      border: 1px solid #ffffff3b;
+      background: #ffffff12;
+      border-radius: 12px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: transform .15s, background .15s;
+    }
+    .small-button:hover, .touch-button:hover { background: #ffffff26; transform: translateY(-1px); }
+    .stage {
+      position: relative;
+      overflow: hidden;
+      border: 3px solid #fff4d27a;
+      border-radius: 22px;
+      background: #6bc8ef;
+      box-shadow: 0 20px 70px #0009, 0 0 0 7px #ffffff0a, 0 0 48px #ffc84e20;
+      isolation: isolate;
+    }
+    canvas { display: block; width: 100%; aspect-ratio: 16 / 9; touch-action: none; }
+    .hud {
+      position: absolute;
+      inset: 12px 14px auto;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      pointer-events: none;
+      text-shadow: 0 2px 4px #182044b3;
+    }
+    .hud-group { display: flex; align-items: flex-start; gap: 8px; }
+    .hud-card {
+      min-width: 82px;
+      padding: 7px 11px;
+      background: #111a38c9;
+      border: 1px solid #ffffff38;
+      border-radius: 13px;
+      backdrop-filter: blur(7px);
+    }
+    .hud-label {
+      display: block;
+      margin-bottom: 2px;
+      color: #d9e7ff;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .hud-value { font-size: clamp(14px, 2.2vw, 20px); font-weight: 1000; white-space: nowrap; }
+    #lives { letter-spacing: 2px; color: #ff6684; }
+    .progress-wrap {
+      position: absolute;
+      top: 72px;
+      left: 50%;
+      width: min(32%, 250px);
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+    .progress-track { height: 8px; overflow: hidden; border: 1px solid #fff9; border-radius: 99px; background: #10172e6b; }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #42e7bd, #ffe16b); transition: width .2s; }
+    .progress-caption { padding-top: 3px; text-align: center; font-size: 10px; font-weight: 900; text-shadow: 0 2px 4px #182044; }
+    .feedback-popup {
+      position: absolute;
+      z-index: 2;
+      top: 53%;
+      left: 50%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: min(78%, 370px);
+      padding: 11px 16px;
+      border: 2px solid #fff5c8d9;
+      border-radius: 19px;
+      background: #172044e8;
+      box-shadow: 0 12px 35px #10142b80;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(.78);
+      transition: opacity .16s ease, transform .2s ease, visibility .2s;
+    }
+    .feedback-popup.is-visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .feedback-popup img { flex: 0 0 auto; width: clamp(72px, 13vw, 112px); height: clamp(72px, 13vw, 112px); object-fit: contain; filter: drop-shadow(0 5px 9px #0008); }
+    .feedback-message { color: #fff3bd; font-size: clamp(15px, 2.7vw, 21px); font-weight: 1000; line-height: 1.2; text-shadow: 0 2px 4px #0008; }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: linear-gradient(100deg, #10152bdb, #12152ca8 64%, #15152b80);
+      opacity: 1;
+      transition: opacity .25s;
+    }
+    .overlay.hidden { opacity: 0; pointer-events: none; }
+    .panel {
+      width: min(100%, 490px);
+      max-height: 100%;
+      overflow: auto;
+      padding: clamp(17px, 4vw, 31px);
+      text-align: center;
+      background: linear-gradient(145deg, #29335ddb, #171c39f2 65%);
+      border: 1px solid #ffffff46;
+      border-radius: 24px;
+      box-shadow: 0 18px 55px #0006, inset 0 1px #ffffff2a;
+      backdrop-filter: blur(12px);
+    }
+    .eyebrow {
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 1000;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 8px 0 4px;
+      color: #fff4c4;
+      font-size: clamp(28px, 6vw, 48px);
+      line-height: .98;
+      letter-spacing: .015em;
+      text-shadow: 0 4px 0 #bd4d43, 0 7px 20px #0008;
+    }
+    .panel h2 { margin: 7px 0 4px; font-size: clamp(22px, 4vw, 32px); }
+    .panel p { margin: 10px auto 18px; max-width: 390px; color: #e2e4fa; line-height: 1.5; }
+    .hero-image { width: clamp(66px, 14vw, 112px); height: clamp(66px, 14vw, 112px); object-fit: contain; filter: drop-shadow(0 7px 13px #0008); }
+    .menu-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+    .primary, .menu-button {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 9px;
+      color: #241a2c;
+      font-weight: 1000;
+      cursor: pointer;
+      transition: transform .15s, filter .15s;
+    }
+    .primary { width: 100%; margin: 0 0 10px; padding: 14px; color: #39212a; background: linear-gradient(#ffe777, #ffae4e); box-shadow: 0 5px 0 #a95143, 0 10px 24px #0003; font-size: 18px; }
+    .menu-button { color: #fff8e4; background: #ffffff20; border: 1px solid #ffffff3c; }
+    .primary:hover, .menu-button:hover { transform: translateY(-2px); filter: brightness(1.09); }
+    .primary:active, .menu-button:active { transform: translateY(2px); }
+    .hint { margin: 12px 0 0 !important; color: #bfc9ea !important; font-size: 12px; }
+    .result-image { max-height: 130px; max-width: min(75%, 230px); object-fit: contain; }
+    .level-image { width: clamp(110px, 20vw, 165px); height: clamp(135px, 27vh, 205px); object-fit: contain; filter: drop-shadow(0 7px 13px #0008); }
+    .result-score { color: var(--gold); font-weight: 1000; font-size: 20px; }
+    .records-list { display: flex; justify-content: center; gap: 20px; padding: 12px; border-radius: 14px; background: #0b102c66; }
+    .records-list strong { display: block; color: var(--gold); font-size: 23px; }
+    .credits { font-size: 14px; }
+    .touch-controls { display: none; justify-content: space-between; gap: 12px; padding: 11px 2px 0; }
+    .touch-group { display: flex; gap: 10px; }
+    .touch-button { min-width: 76px; min-height: 47px; font-weight: 900; touch-action: none; user-select: none; }
+    .touch-button.jump { color: #261b30; background: linear-gradient(#ffe777, #ffae4e); border: 0; }
+    .music-deck {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+      width: min(100%, 356px);
+      margin: 18px auto 0;
+      padding: 14px;
+      border: 1px solid #ffffff2a;
+      border-radius: 17px;
+      background: linear-gradient(145deg, #29335d8c, #171c39c9);
+      box-shadow: 0 12px 35px #0003;
+    }
+    .music-heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .music-title { font-weight: 900; }
+    .music-status, .music-link { color: #c9cbe1; font-size: 12px; }
+    .music-link { color: #ffe28a; }
+    #youtubePlayer { width: 100%; aspect-ratio: 16 / 9; min-height: 200px; overflow: hidden; border-radius: 11px; background: #080b17; }
+    #youtubePlayer iframe { display: block; width: 100%; height: 100%; border: 0; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (pointer: coarse), (max-width: 700px) {
+      .touch-controls { display: flex; }
+      body { display: block; min-height: 100svh; padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); overscroll-behavior: none; }
+      .cabinet { width: 100%; margin: 0 auto; }
+      .topline { margin: 0 0 8px; gap: 6px; }
+      .top-actions { gap: 5px; }
+      .stage { z-index: 30; overflow: visible; border-width: 2px; border-radius: 16px; }
+      canvas { border-radius: 14px; }
+      .hud { inset: 7px 7px auto; gap: 4px; }
+      .hud-group { gap: 4px; }
+      .hud-card { min-width: 0; padding: 5px 7px; border-radius: 10px; }
+      .hud-label { font-size: 8px; }
+      .progress-wrap { top: 59px; width: 34%; }
+      .progress-caption { font-size: 8px; }
+      .overlay { position: fixed; z-index: 40; inset: 0; padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); }
+      .panel { width: min(100%, 490px); max-height: calc(100svh - 20px); padding: 16px; }
+      .panel p { margin: 7px auto 12px; font-size: 13px; }
+      .touch-controls { gap: 8px; padding: 10px 0 calc(10px + env(safe-area-inset-bottom)); }
+      .touch-group { flex: 1; }
+      .touch-button { width: 100%; min-height: 56px; padding: 10px 7px; border-radius: 15px; font-size: clamp(14px, 4vw, 17px); }
+      .feedback-popup { width: min(86%, 340px); gap: 8px; padding: 8px 11px; }
+    }
+    @media (max-width: 430px) {
+      .brand { font-size: clamp(14px, 4.3vw, 19px); letter-spacing: .02em; }
+      .small-button { padding: 7px 8px; font-size: 11px; }
+      .menu-buttons { gap: 6px; }
+      .menu-button { padding: 10px 5px; font-size: 12px; }
+      .hud-card { padding: 4px 5px; }
+      .hud-label { font-size: 7px; letter-spacing: .03em; }
+      .hud-value { font-size: clamp(11px, 3.2vw, 13px); }
+      .music-deck { margin-top: 12px; padding: 10px; }
+    }
+    @media (pointer: coarse) and (orientation: landscape) and (max-height: 500px) {
+      .cabinet { width: min(100%, 120svh); }
+      .topline { margin-bottom: 5px; }
+      .touch-controls { padding-top: 6px; }
+      .touch-button { min-height: 48px; }
+      .overlay { padding: 6px; }
+      .panel { max-height: calc(100svh - 12px); padding: 10px 16px; }
+      .hero-image { width: 62px; height: 62px; }
+      .level-image { height: min(145px, 27vh); }
+      .panel p { margin: 5px auto 9px; }
+      .panel .primary { padding: 9px; }
+    }
+    @media (hover: none) {
+      .small-button:hover, .touch-button:hover { transform: none; }
+      .touch-button:active { filter: brightness(1.15); }
+    }
+    @media (min-width: 701px) and (max-height: 800px) {
+      body { padding: clamp(8px, 2vh, 18px); }
+      .cabinet { width: min(100%, 145svh); }
+    }
+  </style>
+</head>
+<body>
+  <main class="cabinet">
+    <header class="topline">
+      <div class="brand">✦ JACOBO PUMAMAN ✦</div>
+      <div class="top-actions">
+        <button id="pauseBtn" class="small-button" type="button" aria-label="Pausar juego">Ⅱ Pausa</button>
+        <button id="musicBtn" class="small-button" type="button" aria-label="Activar o silenciar música">♫ Música</button>
+      </div>
+    </header>
+    <section class="stage" aria-label="Juego de plataformas Jacobo Pumaman">
+      <canvas id="game" width="960" height="540" aria-label="Escenario del juego"></canvas>
+      <div class="hud" aria-live="polite">
+        <div class="hud-group">
+          <div class="hud-card"><span class="hud-label">Puntos</span><span id="score" class="hud-value">00000</span></div>
+          <div class="hud-card"><span class="hud-label">Récord</span><span id="best" class="hud-value">00000</span></div>
+        </div>
+        <div class="hud-group">
+          <div class="hud-card"><span class="hud-label">Vidas</span><span id="lives" class="hud-value">❤️❤️❤️</span></div>
+          <div class="hud-card"><span class="hud-label">Arañas</span><span id="spiders" class="hud-value">🕷 0/3</span></div>
+        </div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-track"><div id="progress" class="progress-fill"></div></div>
+        <div id="levelCaption" class="progress-caption">LISTO PARA LA AVENTURA</div>
+      </div>
+      <div id="feedbackPopup" class="feedback-popup" aria-hidden="true">
+        <img id="feedbackImage" src="imagenes/martillo1.gif" alt="">
+        <span id="feedbackMessage" class="feedback-message"></span>
+      </div>
+      <div id="overlay" class="overlay">
+        <section class="panel" id="panel" aria-live="polite"></section>
+      </div>
+    </section>
+    <nav class="touch-controls" aria-label="Controles táctiles">
+      <div class="touch-group">
+        <button class="touch-button" id="duckBtn" type="button">↧ Agacharse</button>
+      </div>
+      <div class="touch-group">
+        <button class="touch-button jump" id="jumpBtn" type="button">↑ Saltar</button>
+      </div>
+    </nav>
+    <section class="music-deck" aria-label="Música de los niveles">
+      <div>
+        <div class="music-heading"><span class="music-title" id="musicTitle">🎵 Canción del nivel 1</span></div>
+        <p class="music-status" id="musicStatus">Reproductor oficial de YouTube · Pulsa Jugar para escuchar.</p>
+        <a class="music-link" id="musicLink" href="https://youtu.be/EWOwnQRfy7E" target="_blank" rel="noopener noreferrer">Abrir canción en YouTube ↗</a>
+      </div>
+      <div id="youtubePlayer" aria-label="Reproductor de música de YouTube"></div>
+    </section>
+    <p class="sr-only" id="gameStatus" aria-live="polite"></p>
+  </main>
+  <script>
+    (() => {
+      "use strict";
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+      const overlay = document.getElementById("overlay");
+      const panel = document.getElementById("panel");
+      const feedbackPopup = document.getElementById("feedbackPopup");
+      const feedbackImage = document.getElementById("feedbackImage");
+      const feedbackMessage = document.getElementById("feedbackMessage");
+      const musicTitle = document.getElementById("musicTitle");
+      const musicStatus = document.getElementById("musicStatus");
+      const musicLink = document.getElementById("musicLink");
+      const scoreEl = document.getElementById("score");
+      const bestEl = document.getElementById("best");
+      const livesEl = document.getElementById("lives");
+      const spidersEl = document.getElementById("spiders");
+      const progressEl = document.getElementById("progress");
+      const levelCaption = document.getElementById("levelCaption");
+      const statusEl = document.getElementById("gameStatus");
+      const W = canvas.width;
+      const H = canvas.height;
+      const groundY = 444;
+      const levelNames = ["Pradera chispeante", "Cañón de los engranes", "Bahía burbujeante", "Cumbre arcoíris"];
+      const musicTracks = [
+        { id: "EWOwnQRfy7E", name: "Canción del nivel 1" },
+        { id: "6eg-IHij6S4", name: "Canción del nivel 2" },
+        { id: "MbbKHVu6pDk", name: "Canción del nivel 3" },
+        { id: "i5P8lrgBtcU", name: "Canción del nivel 4" }
+      ];
+      const encouragements = ["¡Vamos, Jacobo!", "¡Sigue corriendo, campeón!", "¡Gran salto!", "¡Nuevo récord!", "¡Increíble velocidad!", "¡Pumaman en acción!", "¡Nivel superado!"];
+      const palette = [
+        { sky: ["#79d9ee", "#d4f1b1"], hill: "#74ca94", far: "#a9e3ad", ground: "#54a852", dark: "#32884f", flower: "#ff718f" },
+        { sky: ["#ffb56e", "#ffe4a0"], hill: "#c98661", far: "#edbd78", ground: "#b86b54", dark: "#8d4a47", flower: "#ffd85b" },
+        { sky: ["#69c8ed", "#b8f1e7"], hill: "#60b8bc", far: "#9ce4d0", ground: "#329b9c", dark: "#217276", flower: "#ff8fc4" },
+        { sky: ["#8279dc", "#ffb8d7"], hill: "#9b8de0", far: "#cab1ec", ground: "#6858b7", dark: "#4b408e", flower: "#ffe375" }
+      ];
+      const playerImage = new Image();
+      playerImage.src = "imagenes/jugador.png";
+      const sleepImage = new Image();
+      sleepImage.src = "imagenes/dormido.png";
+      const victoryImage = new Image();
+      victoryImage.src = "imagenes/martillo1.gif";
+
+      const state = {
+        mode: "menu", level: 0, score: 0, best: loadBest(), lives: 3,
+        spiders: 0, distance: 0, speed: 270, objects: [], particles: [],
+        spawnIn: 1, elapsed: 0, clock: 0, message: "", messageTime: 0,
+        hitFlash: 0, invulnerable: 0, muted: false, musicAvailable: true,
+        backgroundOffset: 0, newRecord: false
+      };
+      const player = { x: 150, y: groundY, vy: 0, height: 136, duck: false, anim: 0 };
+      let youtubePlayer = null;
+      let youtubeReady = false;
+      let feedbackTimer = null;
+      let levelTransitionTimer = null;
+
+      function loadBest() {
+        try { return Number(localStorage.getItem("jacoboPumamanBest")) || 0; }
+        catch (error) { console.warn("No se pudo leer el récord guardado.", error); return 0; }
+      }
+      function saveBest() {
+        if (state.score <= state.best) return;
+        state.best = state.score;
+        try { localStorage.setItem("jacoboPumamanBest", String(state.best)); }
+        catch (error) { console.warn("No se pudo guardar el récord.", error); }
+      }
+      function formatScore(value) { return String(value).padStart(5, "0"); }
+      function showPanel(html) {
+        panel.innerHTML = html;
+        overlay.classList.remove("hidden");
+      }
+      function hidePanel() { overlay.classList.add("hidden"); }
+      function cancelLevelTransition() {
+        window.clearTimeout(levelTransitionTimer);
+        levelTransitionTimer = null;
+      }
+      function showFeedback(image, alt, message) {
+        window.clearTimeout(feedbackTimer);
+        feedbackImage.src = image;
+        feedbackImage.alt = alt;
+        feedbackMessage.textContent = message;
+        feedbackPopup.setAttribute("aria-hidden", "false");
+        feedbackPopup.classList.add("is-visible");
+        feedbackTimer = window.setTimeout(hideFeedback, 1350);
+      }
+      function hideFeedback() {
+        window.clearTimeout(feedbackTimer);
+        feedbackTimer = null;
+        feedbackPopup.classList.remove("is-visible");
+        feedbackPopup.setAttribute("aria-hidden", "true");
+      }
+      function updateHud() {
+        scoreEl.textContent = formatScore(state.score);
+        bestEl.textContent = formatScore(state.best);
+        livesEl.textContent = "❤️".repeat(Math.max(0, state.lives)) || "—";
+        spidersEl.textContent = `🕷 ${state.spiders}/3`;
+        const progress = Math.min(1, state.distance / levelLength());
+        progressEl.style.width = `${progress * 100}%`;
+        levelCaption.textContent = state.mode === "playing" || state.mode === "paused" || state.mode === "levelComplete"
+          ? `NIVEL ${state.level + 1} · ${levelNames[state.level].toUpperCase()}`
+          : "LISTO PARA LA AVENTURA";
+      }
+      function levelLength() { return 12000 + state.level * 2000; }
+      function menu() {
+        cancelLevelTransition();
+        state.mode = "menu";
+        hideFeedback();
+        pauseMusic();
+        state.level = 0;
+        state.score = 0;
+        state.lives = 3;
+        state.spiders = 0;
+        state.distance = 0;
+        state.objects = [];
+        state.particles = [];
+        player.y = groundY;
+        player.vy = 0;
+        player.duck = false;
+        updateHud();
+        showPanel(`
+          <img class="hero-image" src="imagenes/jugador.png" alt="Jacobo, el héroe de la aventura">
+          <div class="eyebrow">Una aventura de velocidad y estrellas</div>
+          <h1>JACOBO<br>PUMAMAN</h1>
+          <p>Corre, salta y recoge estrellas para convertirte en el héroe más veloz.</p>
+          <button class="primary" data-action="play">¡Jugar ahora!</button>
+          <div class="menu-buttons">
+            <button class="menu-button" data-action="records">🏆 Récords</button>
+            <button class="menu-button" data-action="credits">✨ Créditos</button>
+            <button class="menu-button" data-action="help">🎮 Cómo jugar</button>
+          </div>
+          <p class="hint">Espacio / ↑ para saltar · ↓ para agacharse · P para pausar</p>
+        `);
+      }
+      function startGame() {
+        cancelLevelTransition();
+        hideFeedback();
+        state.mode = "playing";
+        state.level = 0;
+        state.score = 0;
+        state.lives = 3;
+        state.spiders = 0;
+        state.distance = 0;
+        state.speed = 270;
+        state.objects = [];
+        state.particles = [];
+        state.elapsed = 0;
+        state.spawnIn = .65;
+        state.invulnerable = 0;
+        state.hitFlash = 0;
+        state.newRecord = false;
+        player.y = groundY;
+        player.vy = 0;
+        player.duck = false;
+        hidePanel();
+        loadLevelMusic();
+        updateHud();
+        statusEl.textContent = "Comienza la aventura. ¡Corre, Jacobo!";
+      }
+      function loadLevelMusic() {
+        const track = musicTracks[state.level];
+        musicTitle.textContent = `🎵 ${track.name}`;
+        musicLink.href = `https://youtu.be/${track.id}`;
+        if (!state.musicAvailable) {
+          musicStatus.textContent = "YouTube no está disponible en esta conexión. Abre la canción con el enlace.";
+          return;
+        }
+        if (!youtubeReady || !youtubePlayer) {
+          musicStatus.textContent = "Conectando con YouTube… Si no carga, abre la canción con el enlace.";
+          return;
+        }
+        if (state.muted) {
+          youtubePlayer.mute();
+          youtubePlayer.cueVideoById(track.id);
+          musicStatus.textContent = "Música silenciada. Actívala con el botón de arriba.";
+          return;
+        }
+        youtubePlayer.unMute();
+        youtubePlayer.loadVideoById(track.id);
+        musicStatus.textContent = `Reproduciendo ${track.name} en el nivel ${state.level + 1}.`;
+      }
+      function pauseMusic() {
+        if (youtubeReady && youtubePlayer) youtubePlayer.pauseVideo();
+      }
+      function resumeMusic() {
+        if (!youtubeReady || !youtubePlayer || state.muted) return;
+        youtubePlayer.unMute();
+        youtubePlayer.playVideo();
+        musicStatus.textContent = `Reproduciendo ${musicTracks[state.level].name}.`;
+      }
+      function initializeYouTubePlayer() {
+        if (!window.YT || !window.YT.Player || youtubePlayer) return;
+        youtubePlayer = new window.YT.Player("youtubePlayer", {
+          width: "356",
+          height: "200",
+          videoId: musicTracks[0].id,
+          playerVars: { autoplay: 0, controls: 1, playsinline: 1, rel: 0, enablejsapi: 1 },
+          events: {
+            onReady: () => {
+              youtubeReady = true;
+              state.musicAvailable = true;
+              youtubePlayer.setVolume(65);
+              if (state.mode === "playing" && !state.muted) loadLevelMusic();
+              else {
+                if (state.muted) youtubePlayer.mute();
+                youtubePlayer.cueVideoById(musicTracks[state.level].id);
+                musicStatus.textContent = "Reproductor listo. Pulsa Jugar para escuchar la canción del nivel.";
+              }
+            },
+            onStateChange: event => {
+              if (event.data === window.YT.PlayerState.ENDED && state.mode === "playing" && !state.muted) {
+                youtubePlayer.seekTo(0);
+                youtubePlayer.playVideo();
+              }
+            },
+            onError: event => {
+              state.musicAvailable = false;
+              musicStatus.textContent = "YouTube no permite reproducir esta canción aquí. Ábrela con el enlace.";
+              console.warn(`YouTube no pudo reproducir ${musicTracks[state.level].id}. Código de error: ${event.data}`);
+            }
+          }
+        });
+      }
+      function advanceLevel() {
+        if (state.mode !== "playing") return;
+        state.score += 100;
+        state.distance = levelLength();
+        state.objects.length = 0;
+        hideFeedback();
+        pauseMusic();
+        state.mode = "levelComplete";
+        state.newRecord = state.score > state.best;
+        updateHud();
+        const isFinalLevel = state.level === 3;
+        showPanel(`
+          <img class="level-image" src="imagenes/nivel.png" alt="Jacobo celebra que completaste el nivel">
+          <div class="eyebrow">Nivel ${state.level + 1} superado · +100 puntos</div>
+          <h2>¡Lo lograste!</h2>
+          <p>${isFinalLevel ? "¡Completaste todos los niveles!" : `Sigue al siguiente nivel: ${state.level + 2} · ${levelNames[state.level + 1]}`}</p>
+          <button class="primary" data-action="next-level">${isFinalLevel ? "Ver felicitación" : "Siguiente nivel"}</button>
+        `);
+        cancelLevelTransition();
+        levelTransitionTimer = window.setTimeout(continueAfterLevel, 3500);
+      }
+      function continueAfterLevel() {
+        if (state.mode !== "levelComplete") return;
+        cancelLevelTransition();
+        if (state.level === 3) {
+          winGame();
+          return;
+        }
+        state.level++;
+        state.mode = "playing";
+        state.distance = 0;
+        state.speed += 45;
+        state.spawnIn = .6;
+        state.message = `¡Nivel ${state.level + 1}! ${levelNames[state.level]}`;
+        state.messageTime = 2.3;
+        loadLevelMusic();
+        hidePanel();
+        updateHud();
+      }
+      function winGame() {
+        cancelLevelTransition();
+        hideFeedback();
+        state.mode = "won";
+        state.newRecord = state.score > state.best;
+        saveBest();
+        updateHud();
+        pauseMusic();
+        statusEl.textContent = "¡Felicidades! Jacobo Pumaman ha completado la misión.";
+        showPanel(`
+          <img class="result-image" src="imagenes/martillo1.gif" alt="Jacobo celebra su victoria">
+          <div class="eyebrow">¡Misión cumplida!</div>
+          <h2>¡Felicidades!</h2>
+          <p>Jacobo Pumaman ha completado la misión.</p>
+          <div class="result-score">Puntuación: ${formatScore(state.score)}</div>
+          ${state.newRecord ? '<p class="eyebrow">✦ ¡Nuevo récord! ✦</p>' : ""}
+          <button class="primary" data-action="play">Volver a jugar</button>
+          <button class="menu-button" data-action="menu">Volver al inicio</button>
+        `);
+      }
+      function loseGame() {
+        cancelLevelTransition();
+        hideFeedback();
+        state.mode = "lost";
+        state.newRecord = state.score > state.best;
+        saveBest();
+        updateHud();
+        pauseMusic();
+        statusEl.textContent = "Jacobo necesita descansar. Intenta nuevamente para superar tu récord.";
+        showPanel(`
+          <img class="result-image" src="imagenes/dormido.png" alt="Jacobo descansando">
+          <div class="eyebrow">Fin de la carrera</div>
+          <h2>Jacobo necesita descansar</h2>
+          <p>Intenta nuevamente para superar tu récord.</p>
+          <div class="result-score">Puntuación: ${formatScore(state.score)}</div>
+          ${state.newRecord ? '<p class="eyebrow">✦ ¡Nuevo récord! ✦</p>' : ""}
+          <button class="primary" data-action="play">Intentar de nuevo</button>
+          <button class="menu-button" data-action="menu">Volver al inicio</button>
+        `);
+      }
+      function showRecords() {
+        showPanel(`
+          <div class="eyebrow">Tu aventura, tus logros</div><h2>🏆 Récords</h2>
+          <p>¡Cada carrera te acerca a una nueva hazaña!</p>
+          <div class="records-list"><div>Mejor puntuación<strong>${formatScore(state.best)}</strong></div><div>Vidas iniciales<strong>❤️ × 3</strong></div></div>
+          <p class="hint">El récord queda guardado en este dispositivo.</p>
+          <button class="primary" data-action="play">¡A por el récord!</button>
+          <button class="menu-button" data-action="menu">Volver</button>
+        `);
+      }
+      function showCredits() {
+        showPanel(`
+          <div class="eyebrow">Un héroe hecho para correr</div><h2>✨ Créditos</h2>
+          <p class="credits">Protagonista: Jacobo Pumaman<br>Una aventura original de plataformas<br><br>Ilustraciones de juego creadas con formas originales.<br>Retratos y celebración: recursos proporcionados para el juego.</p>
+          <button class="primary" data-action="play">¡Jugar!</button>
+          <button class="menu-button" data-action="menu">Volver</button>
+        `);
+      }
+      function showHelp() {
+        showPanel(`
+          <div class="eyebrow">¡Corre, salta y brilla!</div><h2>🎮 Cómo jugar</h2>
+          <p>Salta sobre los obstáculos y agáchate bajo los enemigos voladores. Recoge monedas (10), estrellas (25), rayos de energía y trofeos. ¡Junta 3 arañas para ganar una vida!</p>
+          <p class="hint">Espacio / ↑: saltar · ↓: agacharse · P: pausar<br>Completa 4 niveles. Empiezas con 3 vidas.</p>
+          <button class="primary" data-action="play">¡Entendido, a correr!</button>
+        `);
+      }
+      function togglePause() {
+        if (state.mode === "playing") {
+          state.mode = "paused";
+          pauseMusic();
+          showPanel(`<div class="eyebrow">Toma aire, héroe</div><h2>⏸ Juego en pausa</h2><p>Tu aventura te espera.</p><button class="primary" data-action="resume">Continuar</button><button class="menu-button" data-action="menu">Salir al inicio</button>`);
+        } else if (state.mode === "paused") {
+          state.mode = "playing";
+          hidePanel();
+          resumeMusic();
+        }
+        updateHud();
+      }
+      panel.addEventListener("click", event => {
+        const action = event.target.closest("[data-action]")?.dataset.action;
+        if (!action) return;
+        if (action === "play") startGame();
+        if (action === "menu") menu();
+        if (action === "records") showRecords();
+        if (action === "credits") showCredits();
+        if (action === "help") showHelp();
+        if (action === "resume") togglePause();
+        if (action === "next-level") continueAfterLevel();
+      });
+      document.getElementById("pauseBtn").addEventListener("click", togglePause);
+      document.getElementById("musicBtn").addEventListener("click", () => {
+        state.muted = !state.muted;
+        document.getElementById("musicBtn").textContent = state.muted ? "♫ Silenciada" : (state.musicAvailable ? "♫ Música" : "♫ YouTube");
+        if (state.muted) {
+          pauseMusic();
+          if (youtubeReady) youtubePlayer.mute();
+          musicStatus.textContent = "Música silenciada.";
+        } else if (state.mode === "playing") {
+          resumeMusic();
+        } else if (youtubeReady) {
+          youtubePlayer.unMute();
+          youtubePlayer.cueVideoById(musicTracks[state.level].id);
+          musicStatus.textContent = "Pulsa Jugar para escuchar la canción.";
+        }
+      });
+
+      function jump() {
+        if (state.mode !== "playing") return;
+        if (player.y >= groundY - 1) {
+          player.vy = -690;
+          player.duck = false;
+          state.message = encouragements[Math.floor(Math.random() * encouragements.length)];
+          state.messageTime = .9;
+          sound(600, .07);
+        }
+      }
+      function setDuck(value) { if (state.mode === "playing") player.duck = value; }
+      document.addEventListener("keydown", event => {
+        if (["Space", "ArrowUp", "ArrowDown"].includes(event.code)) event.preventDefault();
+        if ((event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") && !event.repeat) jump();
+        if (event.code === "ArrowDown" || event.code === "KeyS") setDuck(true);
+        if (event.code === "KeyP" || event.code === "Escape") togglePause();
+        if (event.code === "Enter" && ["menu", "lost", "won"].includes(state.mode)) startGame();
+      });
+      document.addEventListener("keyup", event => {
+        if (event.code === "ArrowDown" || event.code === "KeyS") setDuck(false);
+      });
+      const jumpBtn = document.getElementById("jumpBtn");
+      jumpBtn.addEventListener("pointerdown", event => { event.preventDefault(); jump(); });
+      const duckBtn = document.getElementById("duckBtn");
+      duckBtn.addEventListener("pointerdown", event => { event.preventDefault(); duckBtn.setPointerCapture(event.pointerId); setDuck(true); });
+      ["pointerup", "pointercancel", "lostpointercapture"].forEach(name => duckBtn.addEventListener(name, () => setDuck(false)));
+      canvas.addEventListener("pointerdown", () => {
+        if (state.mode === "playing") jump();
+      });
+      function sound(frequency, duration) {
+        if (state.muted) return;
+        try {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContext) return;
+          const audio = new AudioContext();
+          const oscillator = audio.createOscillator();
+          const gain = audio.createGain();
+          oscillator.type = "sine";
+          oscillator.frequency.value = frequency;
+          gain.gain.setValueAtTime(.055, audio.currentTime);
+          gain.gain.exponentialRampToValueAtTime(.001, audio.currentTime + duration);
+          oscillator.connect(gain);
+          gain.connect(audio.destination);
+          oscillator.start();
+          oscillator.stop(audio.currentTime + duration);
+          oscillator.onended = () => audio.close();
+        } catch (error) { console.warn("No se pudo reproducir el efecto de sonido.", error); }
+      }
+
+      function spawnPattern() {
+        const x = W + 30;
+        const roll = Math.random();
+        const enemyKinds = ["robot", "barrel", "mech", "ghost", "ninja", "drone"];
+        if (roll < .38) {
+          state.objects.push({ kind: "enemy", type: enemyKinds[Math.floor(Math.random() * Math.min(2 + state.level, enemyKinds.length))], x, y: groundY, w: 60, h: 68, phase: Math.random() * 6 });
+        } else if (roll < .58) {
+          state.objects.push({ kind: "enemy", type: "drone", x, y: groundY - 118, w: 66, h: 52, phase: Math.random() * 6 });
+        } else if (roll < .71) {
+          state.objects.push({ kind: "spider", x, y: groundY - 68 - Math.random() * 55, w: 30, h: 30, phase: Math.random() * 6 });
+        } else if (roll < .82) {
+          state.objects.push({ kind: "collectible", type: "coin", x, y: groundY - 70 - Math.random() * 55, w: 28, h: 32, phase: Math.random() * 6 });
+          state.objects.push({ kind: "collectible", type: "coin", x: x + 43, y: groundY - 95, w: 28, h: 32, phase: 1 });
+          state.objects.push({ kind: "collectible", type: "coin", x: x + 86, y: groundY - 70 - Math.random() * 55, w: 28, h: 32, phase: 2 });
+        } else if (roll < .94) {
+          const type = Math.random() < .7 ? "star" : "bolt";
+          state.objects.push({ kind: "collectible", type, x, y: groundY - 80 - Math.random() * 70, w: 34, h: 38, phase: Math.random() * 6 });
+        } else {
+          state.objects.push({ kind: "collectible", type: "trophy", x, y: groundY - 55, w: 36, h: 42, phase: Math.random() * 6 });
+        }
+        const interval = Math.max(.83, 1.48 - state.level * .12 - state.elapsed * .002);
+        state.spawnIn = interval * (.78 + Math.random() * .52);
+      }
+      function update(dt) {
+        state.clock += dt;
+        state.backgroundOffset += (state.mode === "playing" ? state.speed : 45) * dt;
+        if (state.mode !== "playing") return;
+        state.elapsed += dt;
+        state.distance += state.speed * dt;
+        state.speed = 270 + state.level * 45 + Math.min(100, state.elapsed * 2.5);
+        state.spawnIn -= dt;
+        if (state.spawnIn <= 0) spawnPattern();
+        player.anim += dt * (player.y < groundY ? 4 : 12);
+        player.vy += 1700 * dt;
+        player.y = Math.min(groundY, player.y + player.vy * dt);
+        if (player.y >= groundY) player.vy = 0;
+        state.invulnerable = Math.max(0, state.invulnerable - dt);
+        state.hitFlash = Math.max(0, state.hitFlash - dt);
+        state.messageTime = Math.max(0, state.messageTime - dt);
+        for (const object of state.objects) {
+          object.x -= state.speed * dt;
+          object.phase += dt * 5;
+          if (object.kind === "enemy" || object.kind === "spider") object.y += Math.sin(object.phase) * .35;
+          if (object.collected || object.passed) continue;
+          const playerH = player.duck ? 75 : 114;
+          const playerTop = player.y - playerH;
+          const itemTop = object.y - object.h;
+          const horizontal = player.x + 37 > object.x + 8 && player.x + 12 < object.x + object.w - 8;
+          const vertical = player.y - 7 > itemTop + 4 && playerTop + 12 < object.y - 3;
+          if (!horizontal || !vertical) continue;
+          if (object.kind === "enemy") {
+            const overhead = object.type === "drone";
+            if ((overhead && player.duck) || (!overhead && player.y < groundY - 35)) {
+              object.passed = true;
+              state.score += 10;
+              burst(object.x, object.y - object.h / 2, "#c8fff1");
+              sound(740, .08);
+            } else if (state.invulnerable <= 0) {
+              object.passed = true;
+              state.lives--;
+              state.invulnerable = 1.4;
+              state.hitFlash = .35;
+              state.message = state.lives > 0 ? "¡Uy! ¡Tú puedes, Jacobo!" : "¡Ánimo, campeón!";
+              state.messageTime = 1.3;
+              sound(170, .18);
+              if (state.lives <= 0) { loseGame(); return; }
+              showFeedback("imagenes/dormido.png", "Jacobo descansando después del choque", "¡Uy! ¡A recuperar fuerzas!");
+            }
+          } else {
+            object.collected = true;
+            if (object.kind === "spider") {
+              state.spiders++;
+              state.score += 10;
+              if (state.spiders >= 3) {
+                state.spiders = 0;
+                state.lives = Math.min(5, state.lives + 1);
+                state.message = "¡Tres arañitas! ¡Una vida extra!";
+                state.messageTime = 1.6;
+                burst(object.x, object.y - 10, "#92e8ff");
+                showFeedback("imagenes/martillo1.gif", "Jacobo celebra la vida extra", "¡Vida extra!");
+              } else {
+                state.message = "¡Arañita atrapada!";
+                state.messageTime = .8;
+                showFeedback("imagenes/martillo1.gif", "Jacobo celebra una arañita", "¡Arañita atrapada!");
+              }
+            } else {
+              const points = { coin: 10, star: 25, bolt: 25, trophy: 50 }[object.type];
+              state.score += points;
+              state.message = object.type === "coin" ? "¡Moneda brillante! +10" : object.type === "star" ? "¡Estrella mágica! +25" : object.type === "bolt" ? "¡Rayo de energía! +25" : "¡Trofeo dorado! +50";
+              state.messageTime = 1;
+            }
+            burst(object.x, object.y - object.h / 2, object.kind === "spider" ? "#a3f4ff" : "#ffe482");
+            sound(object.kind === "spider" ? 880 : 1000, .1);
+          }
+        }
+        state.objects = state.objects.filter(object => object.x + object.w > -30 && !object.collected && !object.passed);
+        for (const particle of state.particles) {
+          particle.x += particle.vx * dt;
+          particle.y += particle.vy * dt;
+          particle.vy += 220 * dt;
+          particle.life -= dt;
+        }
+        state.particles = state.particles.filter(particle => particle.life > 0);
+        if (state.distance >= levelLength()) {
+          advanceLevel();
+          return;
+        }
+        state.newRecord = state.score > state.best;
+        updateHud();
+      }
+      function burst(x, y, color) {
+        for (let i = 0; i < 7; i++) state.particles.push({ x, y, vx: (Math.random() - .5) * 170, vy: -Math.random() * 130 - 20, life: .45 + Math.random() * .2, color });
+      }
+
+      function roundedRect(x, y, w, h, r, color) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.roundRect(x, y, w, h, r);
+        ctx.fill();
+      }
+      function drawBackground() {
+        const colors = palette[Math.min(state.level, 3)];
+        const sky = ctx.createLinearGradient(0, 0, 0, H);
+        sky.addColorStop(0, colors.sky[0]);
+        sky.addColorStop(1, colors.sky[1]);
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, W, H);
+        ctx.save();
+        ctx.globalAlpha = .85;
+        ctx.fillStyle = "#fff8d5";
+        ctx.beginPath(); ctx.arc(772, 126, 48, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = .22;
+        ctx.beginPath(); ctx.arc(772, 126, 73, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+        drawClouds();
+        drawHills(colors);
+        drawGround(colors);
+        drawFlowers(colors);
+      }
+      function drawClouds() {
+        ctx.fillStyle = "#fff9e8c9";
+        const offset = (state.backgroundOffset * .16) % 1150;
+        for (let i = 0; i < 5; i++) {
+          const x = ((i * 245 - offset) % 1150 + 1150) % 1150 - 100;
+          const y = 93 + (i % 3) * 52;
+          ctx.beginPath();
+          ctx.ellipse(x, y, 42, 14, 0, 0, Math.PI * 2);
+          ctx.ellipse(x + 24, y - 10, 25, 20, 0, 0, Math.PI * 2);
+          ctx.ellipse(x + 50, y, 35, 14, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      function drawHills(colors) {
+        const shift1 = (state.backgroundOffset * .2) % 320;
+        ctx.fillStyle = colors.far;
+        ctx.beginPath();
+        ctx.moveTo(0, 350);
+        for (let x = -340 - shift1; x < W + 340; x += 320) {
+          ctx.quadraticCurveTo(x + 100, 235, x + 245, 330);
+          ctx.quadraticCurveTo(x + 290, 360, x + 340, 335);
+        }
+        ctx.lineTo(W, groundY); ctx.lineTo(0, groundY); ctx.fill();
+        const shift2 = (state.backgroundOffset * .42) % 270;
+        ctx.fillStyle = colors.hill;
+        ctx.beginPath(); ctx.moveTo(0, 398);
+        for (let x = -290 - shift2; x < W + 290; x += 270) {
+          ctx.quadraticCurveTo(x + 100, 285, x + 210, 375);
+          ctx.quadraticCurveTo(x + 250, 405, x + 290, 370);
+        }
+        ctx.lineTo(W, groundY); ctx.lineTo(0, groundY); ctx.fill();
+        for (let i = 0; i < 5; i++) {
+          const x = ((i * 230 - state.backgroundOffset * .58) % 1120 + 1120) % 1120 - 70;
+          ctx.fillStyle = "#fff3c9";
+          ctx.beginPath(); ctx.arc(x, 368, 24, Math.PI, 0); ctx.lineTo(x + 24, 383); ctx.lineTo(x - 24, 383); ctx.fill();
+          ctx.fillStyle = "#f4b35e";
+          for (let j = 0; j < 3; j++) ctx.fillRect(x - 13 + j * 11, 369, 4, 7);
+        }
+      }
+      function drawGround(colors) {
+        ctx.fillStyle = colors.ground;
+        ctx.fillRect(0, groundY, W, H - groundY);
+        ctx.fillStyle = "#ffffff30";
+        ctx.fillRect(0, groundY, W, 6);
+        ctx.fillStyle = colors.dark;
+        const offset = state.backgroundOffset % 70;
+        for (let x = -offset; x < W + 70; x += 70) {
+          ctx.beginPath(); ctx.moveTo(x, groundY + 36); ctx.lineTo(x + 21, groundY + 36); ctx.lineTo(x + 8, groundY + 47); ctx.lineTo(x - 13, groundY + 47); ctx.fill();
+          ctx.fillStyle = "#ffffff25"; ctx.fillRect(x + 32, groundY + 13, 14, 4); ctx.fillStyle = colors.dark;
+        }
+      }
+      function drawFlowers(colors) {
+        const offset = state.backgroundOffset % 170;
+        for (let i = 0; i < 7; i++) {
+          const x = ((i * 170 - offset) % 1130 + 1130) % 1130 - 30;
+          const y = groundY + 20 + i % 2 * 17;
+          ctx.strokeStyle = "#286c45"; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.moveTo(x, y + 9); ctx.lineTo(x, y + 23); ctx.stroke();
+          ctx.fillStyle = colors.flower;
+          for (let j = 0; j < 5; j++) {
+            const a = j * Math.PI * 2 / 5;
+            ctx.beginPath(); ctx.arc(x + Math.cos(a) * 6, y + Math.sin(a) * 6, 4, 0, Math.PI * 2); ctx.fill();
+          }
+          ctx.fillStyle = "#ffdb5b"; ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      function drawPlayer() {
+        if (state.invulnerable > 0 && Math.floor(state.clock * 16) % 2 === 0) return;
+        const runningBob = player.y >= groundY ? Math.sin(player.anim) * 3 : 0;
+        const imageH = player.duck ? 84 : 145;
+        const imageW = player.duck ? 96 : 94;
+        const drawY = player.y - imageH + runningBob + (player.duck ? 12 : 0);
+        ctx.save();
+        if (playerImage.complete && playerImage.naturalWidth) {
+          ctx.shadowColor = "#1a204a55";
+          ctx.shadowBlur = 12;
+          ctx.shadowOffsetY = 6;
+          ctx.drawImage(playerImage, player.x - 18, drawY, imageW, imageH);
+        } else {
+          drawFallbackHero(player.x, drawY, imageW, imageH);
+        }
+        ctx.restore();
+      }
+      function drawFallbackHero(x, y, w, h) {
+        ctx.fillStyle = "#e53e4e"; ctx.beginPath(); ctx.arc(x + w / 2, y + 22, 18, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#fff4d2"; ctx.fillRect(x + 25, y + 18, 12, 6); ctx.fillRect(x + 45, y + 18, 12, 6);
+        roundedRect(x + 20, y + 43, 45, h - 55, 14, "#d83448");
+        ctx.fillStyle = "#ffd45c"; ctx.fillRect(x + 20, y + 51, 45, 5);
+      }
+      function drawEnemy(o) {
+        const cx = o.x + o.w / 2;
+        const floor = o.y;
+        const bob = Math.sin(o.phase) * 3;
+        ctx.save();
+        ctx.translate(cx, floor + bob);
+        if (o.type === "drone") {
+          ctx.strokeStyle = "#41456a"; ctx.lineWidth = 4;
+          ctx.beginPath(); ctx.moveTo(-24, -23); ctx.lineTo(24, -23); ctx.stroke();
+          ctx.fillStyle = "#353c62";
+          for (const side of [-1, 1]) {
+            ctx.beginPath(); ctx.ellipse(side * 28, -24, 13 + Math.sin(o.phase * 4) * 2, 4, 0, 0, Math.PI * 2); ctx.fill();
+          }
+          roundedRect(-27, -29, 54, 35, 14, "#6277bd");
+          roundedRect(-19, -22, 38, 13, 7, "#b7d9ff");
+          ctx.fillStyle = "#ff5c74"; ctx.beginPath(); ctx.arc(0, -16, 5, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#f6efdb"; ctx.fillRect(-15, -3, 8, 5); ctx.fillRect(7, -3, 8, 5);
+        } else if (o.type === "barrel") {
+          ctx.rotate(Math.sin(o.phase * 2) * .1);
+          roundedRect(-27, -61, 54, 57, 14, "#ba713f");
+          roundedRect(-29, -51, 58, 9, 5, "#e1b354");
+          roundedRect(-29, -24, 58, 9, 5, "#e1b354");
+          ctx.fillStyle = "#382e44"; ctx.beginPath(); ctx.arc(-10, -37, 4, 0, Math.PI * 2); ctx.arc(10, -37, 4, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = "#382e44"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, -28, 8, .2, Math.PI - .2); ctx.stroke();
+        } else if (o.type === "ghost") {
+          ctx.fillStyle = "#ac92ed"; ctx.beginPath(); ctx.arc(0, -39, 27, Math.PI, 0); ctx.lineTo(27, -9); ctx.quadraticCurveTo(15, -20, 7, -8); ctx.quadraticCurveTo(-3, -20, -14, -8); ctx.quadraticCurveTo(-21, -19, -27, -8); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.ellipse(-9, -38, 7, 10, 0, 0, Math.PI * 2); ctx.ellipse(10, -38, 7, 10, 0, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#44396e"; ctx.beginPath(); ctx.arc(-7, -37, 3, 0, Math.PI * 2); ctx.arc(12, -37, 3, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#ffb9cf"; ctx.beginPath(); ctx.arc(0, -18, 5, 0, Math.PI * 2); ctx.fill();
+        } else if (o.type === "ninja") {
+          ctx.fillStyle = "#314073"; ctx.beginPath(); ctx.arc(0, -40, 27, Math.PI, 0); ctx.lineTo(22, -9); ctx.quadraticCurveTo(0, -2, -22, -9); ctx.closePath(); ctx.fill();
+          roundedRect(-25, -45, 50, 16, 7, "#fff2d6");
+          ctx.fillStyle = "#262c4a"; ctx.beginPath(); ctx.arc(-10, -37, 3, 0, Math.PI * 2); ctx.arc(10, -37, 3, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = "#ffe66e"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-28, -25); ctx.lineTo(-42, -30 + Math.sin(o.phase * 3) * 5); ctx.moveTo(27, -26); ctx.lineTo(39, -22 - Math.sin(o.phase * 3) * 5); ctx.stroke();
+        } else if (o.type === "mech") {
+          roundedRect(-28, -58, 56, 54, 10, "#6a7890");
+          roundedRect(-21, -48, 42, 22, 6, "#a9d8e4");
+          const blink = Math.sin(o.phase * 2) > .94 ? 1 : 4;
+          ctx.fillStyle = "#ed5e71"; ctx.beginPath(); ctx.ellipse(-10, -37, 4, blink, 0, 0, Math.PI * 2); ctx.ellipse(10, -37, 4, blink, 0, 0, Math.PI * 2); ctx.fill();
+          roundedRect(-35, -20 + Math.sin(o.phase * 3) * 2, 15, 19, 5, "#46536f"); roundedRect(20, -20 - Math.sin(o.phase * 3) * 2, 15, 19, 5, "#46536f");
+          ctx.strokeStyle = "#ffd253"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-16, -58); ctx.lineTo(-21, -69); ctx.lineTo(-8, -67); ctx.stroke();
+        } else {
+          roundedRect(-26, -59, 52, 55, 11, "#8d9a83");
+          roundedRect(-23, -72, 46, 22, 9, "#829387");
+          ctx.fillStyle = "#f7e6bd"; ctx.beginPath(); ctx.arc(-9, -61, 6, 0, Math.PI * 2); ctx.arc(10, -61, 6, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#d84951"; ctx.beginPath(); ctx.arc(-8, -60, 3, 0, Math.PI * 2); ctx.arc(11, -60, 3, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = "#6b746c"; ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(-20, -5); ctx.lineTo(-25, Math.sin(o.phase * 4) * 5);
+          ctx.moveTo(20, -5); ctx.lineTo(25, -Math.sin(o.phase * 4) * 5);
+          ctx.moveTo(-27, -45); ctx.lineTo(-36, -38 + Math.sin(o.phase * 3) * 4);
+          ctx.moveTo(27, -45); ctx.lineTo(36, -38 - Math.sin(o.phase * 3) * 4);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+      function drawCollectible(o) {
+        const x = o.x + o.w / 2;
+        const y = o.y - o.h / 2 + Math.sin(o.phase) * 4;
+        ctx.save();
+        ctx.translate(x, y);
+        if (o.kind === "spider") {
+          ctx.strokeStyle = "#33445f"; ctx.lineWidth = 3;
+          for (let side of [-1, 1]) for (let i = 0; i < 4; i++) {
+            const py = -7 + i * 5;
+            ctx.beginPath(); ctx.moveTo(side * 7, py); ctx.lineTo(side * (15 + (i % 2) * 4), py - 5 + i * 2); ctx.stroke();
+          }
+          ctx.fillStyle = "#9deaff"; ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#33445f"; ctx.beginPath(); ctx.arc(-3, -2, 1.6, 0, Math.PI * 2); ctx.arc(3, -2, 1.6, 0, Math.PI * 2); ctx.fill();
+        } else if (o.type === "coin") {
+          ctx.fillStyle = "#d99028"; ctx.beginPath(); ctx.ellipse(0, 0, 12, 16, 0, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#ffd95b"; ctx.beginPath(); ctx.ellipse(-1, -1, 9, 13, 0, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#fff1a4"; ctx.fillRect(-4, -10, 3, 7);
+        } else if (o.type === "star") {
+          ctx.shadowColor = "#fff49a"; ctx.shadowBlur = 16;
+          starPath(0, 0, 17, 8, 5); ctx.fillStyle = "#ffe36a"; ctx.fill();
+          ctx.strokeStyle = "#fff7bd"; ctx.lineWidth = 2; ctx.stroke();
+        } else if (o.type === "bolt") {
+          ctx.shadowColor = "#7deeff"; ctx.shadowBlur = 15;
+          ctx.beginPath(); ctx.moveTo(4, -19); ctx.lineTo(-12, 2); ctx.lineTo(-2, 2); ctx.lineTo(-7, 19); ctx.lineTo(13, -5); ctx.lineTo(3, -5); ctx.closePath();
+          ctx.fillStyle = "#86edff"; ctx.fill(); ctx.strokeStyle = "#e3ffff"; ctx.lineWidth = 2; ctx.stroke();
+        } else {
+          ctx.fillStyle = "#ffd85b";
+          ctx.beginPath(); ctx.moveTo(-13, -16); ctx.lineTo(-8, -8); ctx.lineTo(-13, -1); ctx.lineTo(13, -1); ctx.lineTo(8, -8); ctx.lineTo(13, -16); ctx.closePath(); ctx.fill();
+          roundedRect(-4, -1, 8, 16, 2, "#ffc947"); roundedRect(-11, 13, 22, 5, 2, "#dc9a39");
+        }
+        ctx.restore();
+      }
+      function starPath(x, y, outer, inner, points) {
+        ctx.beginPath();
+        for (let i = 0; i < points * 2; i++) {
+          const radius = i % 2 ? inner : outer;
+          const angle = -Math.PI / 2 + i * Math.PI / points;
+          const px = x + Math.cos(angle) * radius;
+          const py = y + Math.sin(angle) * radius;
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+      }
+      function draw() {
+        drawBackground();
+        for (const object of state.objects) {
+          if (object.kind === "enemy") drawEnemy(object);
+          else drawCollectible(object);
+        }
+        for (const p of state.particles) {
+          ctx.globalAlpha = Math.min(1, p.life * 2);
+          ctx.fillStyle = p.color;
+          ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        drawPlayer();
+        if (state.hitFlash > 0) {
+          ctx.fillStyle = `rgba(255, 66, 83, ${state.hitFlash * .28})`;
+          ctx.fillRect(0, 0, W, H);
+        }
+        if (state.messageTime > 0) {
+          ctx.save();
+          ctx.globalAlpha = Math.min(1, state.messageTime * 2);
+          ctx.font = "1000 26px Trebuchet MS, sans-serif";
+          ctx.textAlign = "center";
+          ctx.lineWidth = 6;
+          ctx.strokeStyle = "#303059a8";
+          ctx.strokeText(state.message, W / 2, 162);
+          ctx.fillStyle = "#fff4b8";
+          ctx.fillText(state.message, W / 2, 162);
+          ctx.restore();
+        }
+      }
+      let previous = performance.now();
+      function frame(now) {
+        const dt = Math.min(.035, (now - previous) / 1000);
+        previous = now;
+        update(dt);
+        draw();
+        requestAnimationFrame(frame);
+      }
+      window.onYouTubeIframeAPIReady = initializeYouTubePlayer;
+      const youtubeApi = document.createElement("script");
+      youtubeApi.src = "https://www.youtube.com/iframe_api";
+      youtubeApi.async = true;
+      youtubeApi.onerror = () => {
+        state.musicAvailable = false;
+        musicStatus.textContent = "No se pudo conectar con YouTube. Revisa tu conexión o abre la canción con el enlace.";
+        document.getElementById("musicBtn").textContent = "♫ YouTube";
+        console.warn("No se pudo cargar la API oficial de YouTube.");
+      };
+      document.head.appendChild(youtubeApi);
+      updateHud();
+      menu();
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>
